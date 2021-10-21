@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <title>Google Maps API v3 Directions Example</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCSZIb8GuZ0WCtREbOZCTj7sCltyTzWW8I&callback=refreshMap"></script>
+
+    <style>
+        ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        
+        li {
+            float: left;
+        }
+        
+        li a {
+            display: block;
+            color: white;
+            text-align: center;
+            padding: 16px;
+            text-decoration: none;
+        }
+    </style>
+
+</head>
+
+<body style="font-family: Arial; font-size: 12px;">
+    <ul>
+        <li style="width: 250px;">
+
+            <div style="width: 100px;" id="divUseBrowserLocation">Browser Location:</div>
+            <input type="checkbox" id="chkUseBrowserLocation" checked />
+            </br>
+            </br>
+            <div style="width: 100px;">Source Location:</div>
+            <input type="text" id="txtOrigin" placeholder="Source Location" value="Güngören Kale Center" readonly disabled />
+            </br>
+            </br>
+            <div style="width: 100px;">Destination:</div>
+            <input type="text" id="txtDestination" placeholder="Destination" value="Güngören İlgi Hastanesi" />
+            </br>
+            </br>
+            <div style="width: 100px;" id="divTravelModeText">DRIVING Mode:</div>
+            <input type="checkbox" id="chkTravelMode" checked />
+            </br>
+            </br>
+            <div style="width: 130px;" id="divMapType">Map Type: ROADMAP</div>
+            <input type="checkbox" id="chkMapType" checked />
+            </br>
+            </br>
+            </br>
+            <button id="btnRefresh">Yenile</button>
+        </li>
+
+        <li>
+            <div style="width: 800px;">
+                <div id="map" style="width: 500px; height: 500px; float: left;"></div>
+                <div id="panel" style="width: 300px; float: right;"></div>
+            </div>
+        </li>
+    </ul>
+
+    <script type="text/javascript">
+        $(document).ready(function() {
+
+
+            var browserLocation;
+
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    browserLocation = position;
+                    $('#txtOrigin').val(browserLocation.coords.latitude + ', ' + browserLocation.coords.longitude)
+                });
+            }
+
+            var directionsService = new google.maps.DirectionsService();
+            var directionsDisplay = new google.maps.DirectionsRenderer();
+
+
+            var mapProp = {
+                // mapTypeId: google.maps.MapTypeId.ROADMAP,
+                mapTypeId: ($('#chkMapType').is(':checked') ? google.maps.MapTypeId.ROADMAP : google.maps.MapTypeId.HYBRID),
+                // mapTypeId: google.maps.MapTypeId.HYBRID,
+                // center: new google.maps.LatLng(41.508742, -0.120850),
+                zoom: 15
+            };
+
+
+            var map = new google.maps.Map(document.getElementById('map'), mapProp);
+
+
+
+            $('#btnRefresh').click(function() {
+                refreshMap();
+            });
+
+
+
+
+            var refreshMap = function() {
+
+                var travelMd = $('#chkTravelMode').is(':checked');
+                var request = {
+                    origin: $('#txtOrigin').val(),
+                    destination: $('#txtDestination').val(),
+                    travelMode: (travelMd ? google.maps.DirectionsTravelMode.DRIVING : google.maps.DirectionsTravelMode.WALKING)
+                        //    travelMode: google.maps.DirectionsTravelMode.WALKING
+                };
+
+                directionsDisplay.setMap(map);
+                directionsDisplay.setPanel(document.getElementById('panel'));
+
+                directionsService.route(request, function(response, status) {
+
+                    if (status == google.maps.DirectionsStatus.OK) {
+                        directionsDisplay.setDirections(response);
+                    }
+                });
+            }
+
+
+
+            $('#chkUseBrowserLocation').change(function() {
+                $('#divUseBrowserLocation').html(this.checked ? "Browser Location" : "Manuel Location")
+                    // $('#txtOrigin').attr({
+                    //     'readonly': 'true'
+                    // });
+                if (this.checked) {
+                    $('#txtOrigin').attr('readonly', 'true');
+                    $('#txtOrigin').attr('disabled', 'true');
+                    $('#txtOrigin').val(browserLocation.coords.latitude + ', ' + browserLocation.coords.longitude)
+                } else {
+                    $('#txtOrigin').removeAttr('readonly');
+                    $('#txtOrigin').removeAttr('disabled');
+                    $('#txtOrigin').val('Güngören Haznedar');
+                }
+            });
+
+            $('#chkTravelMode').change(function() {
+                $('#divTravelModeText').html(this.checked ? "DRIVING Mode" : "WALKING Mode")
+            });
+
+            $('#chkMapType').change(function() {
+                $('#divMapType').html(this.checked ? "Map Type: ROADMAP" : "Map Type: HYBRID")
+
+                mapProp = {
+                    // mapTypeId: google.maps.MapTypeId.ROADMAP,
+                    mapTypeId: ($('#chkMapType').is(':checked') ? google.maps.MapTypeId.ROADMAP : google.maps.MapTypeId.HYBRID),
+                    // mapTypeId: google.maps.MapTypeId.HYBRID,
+                    // center: new google.maps.LatLng(41.508742, -0.120850),
+                    zoom: 15
+                };
+                map = new google.maps.Map(document.getElementById('map'), mapProp);
+            });
+
+
+        });
+    </script>
+</body>
+
+</html>
